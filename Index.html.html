@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinCase Pro — Interactive Financial Case-Study & Exam Simulator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            emerald: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              900: '#064e3b',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* Custom subtle scrollbars for split-screen workspace */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.4);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.65);
+    }
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans antialiased selection:bg-emerald-500/20 selection:text-emerald-700 dark:selection:text-emerald-300 transition-colors duration-200">
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+      <!-- Brand Identity -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-sm shadow-emerald-600/30">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-lg tracking-tight text-slate-900 dark:text-white">FinCase<span class="text-emerald-600 dark:text-emerald-400">Pro</span></span>
+            <span class="hidden sm:inline-block text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">CA • ACCA • CFA</span>
+          </div>
+          <p class="hidden md:block text-xs text-slate-500 dark:text-slate-400">Interactive Case-Study & Exam Simulation Engine</p>
+        </div>
+      </div>
+
+      <!-- Center: Exam Countdown Timer -->
+      <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl">
+        <div class="flex items-center gap-1.5">
+          <span id="timer-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-xs font-medium text-slate-500 dark:text-slate-400 hidden sm:inline">Exam Clock:</span>
+          <span id="exam-timer" class="font-mono text-sm sm:text-base font-semibold tabular-nums text-slate-900 dark:text-white">25:00</span>
+        </div>
+        <div class="h-4 w-[1px] bg-slate-300 dark:bg-slate-700 mx-1"></div>
+        <button id="timer-toggle-btn" onclick="toggleTimer()" class="text-xs font-semibold px-2 py-1 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition">
+          Pause
+        </button>
+        <button onclick="resetTimer()" title="Reset Timer" class="p-1 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-white transition">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Right: Monetization Tier Badge & Theme Toggle -->
+      <div class="flex items-center gap-2.5">
+        <!-- Tier Badge / Upgrade Trigger -->
+        <button id="tier-badge-btn" onclick="handleTierButtonClick()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border transition shadow-sm bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 dark:bg-amber-950/50 dark:border-amber-800/70 dark:text-amber-300">
+          <span id="tier-icon">🔓</span>
+          <span id="tier-label">Free Tier • Upgrade</span>
+        </button>
+
+        <!-- Dark Mode Toggle -->
+        <button onclick="toggleDarkMode()" aria-label="Toggle Dark Mode" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+          <svg id="sun-icon" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <svg id="moon-icon" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Case Selector & Dynamic Scenario Builder Bar -->
+  <section class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      <!-- Pre-Loaded Case Tabs -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0" id="case-selector-list">
+        <!-- Populated dynamically via JS -->
+      </div>
+
+      <!-- AI / Procedural Case Generator Trigger -->
+      <div class="flex items-center gap-2 shrink-0">
+        <button onclick="toggleGeneratorPanel()" id="generator-toggle-btn" class="w-full sm:w-auto flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/20 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <span>Practice Case Generator</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Collapsible Case Generator Drawer -->
+    <div id="generator-drawer" class="hidden border-t border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/95">
+      <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-stretch sm:items-end justify-between gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Syllabus Topic</label>
+            <select id="gen-topic" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="ratios">Financial Ratio & Liquidity Analysis</option>
+              <option value="breakeven">CVP & Break-Even Costing</option>
+              <option value="npv">Capital Budgeting (NPV & Payback)</option>
+              <option value="audit">Audit Materiality & Risk Assessment</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Exam Standard / Difficulty</label>
+            <select id="gen-difficulty" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="Intermediate">B.Com / CA Inter / ACCA Applied Skills</option>
+              <option value="Advanced">CA Final / CFA Level II / ACCA Strategic</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Reporting Currency</label>
+            <select id="gen-currency" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="₹">INR (₹ in Lakhs)</option>
+              <option value="$">USD ($ in Thousands)</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="generateDynamicCase()" class="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-900 dark:bg-emerald-600 hover:bg-slate-800 dark:hover:bg-emerald-500 text-white text-xs font-semibold transition shadow-sm">
+            Generate Fresh Case Study
+          </button>
+          <button onclick="toggleGeneratorPanel()" class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Toast / Inline Notification Banner -->
+  <div id="toast-banner" class="hidden fixed bottom-5 right-5 z-50 max-w-sm bg-slate-900 dark:bg-slate-800 text-white px-4 py-3 rounded-xl shadow-xl border border-slate-700 flex items-center gap-3 text-xs font-medium">
+    <span id="toast-icon" class="text-emerald-400 text-base">✓</span>
+    <span id="toast-message">Notification</span>
+  </div>
+
+  <!-- Main Split-Screen Workspace -->
+  <main class="max-w-[1600px] mx-auto px-4 sm:px-6 py-5">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+      <!-- LEFT PANEL: The Case Dossier & Financial Exhibits (7 cols on lg) -->
+      <div class="lg:col-span-7 flex flex-col gap-5">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <!-- Case Header Metadata -->
+          <div class="p-5 sm:p-6 border-b border-slate-200 dark:border-slate-800">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span id="case-badge" class="px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  FREE SAMPLE CASE
+                </span>
+                <span id="case-syllabus-tag" class="text-xs font-medium text-slate-500 dark:text-slate-400">
+                  Financial Reporting & Analysis
+                </span>
+              </div>
+              <span id="case-marks-badge" class="text-xs font-mono font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+                Total Marks: 20
+              </span>
+            </div>
+            <h1 id="case-title" class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+              Loading Case Study...
+            </h1>
+            <p id="case-subtitle" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+              Read all exhibits carefully before attempting the quantitative and analytical requirements.
+            </p>
+          </div>
+
+          <!-- Exhibit Navigation Tabs -->
+          <div class="px-5 sm:px-6 bg-slate-50/70 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 flex items-center gap-1 overflow-x-auto" id="exhibit-tabs">
+            <!-- Populated dynamically -->
+          </div>
+
+          <!-- Active Exhibit Content Area -->
+          <div id="exhibit-content" class="p-5 sm:p-6 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Built-In Exam Scratchpad & Quick Financial Calculator -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-5">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">Candidate Rough Sheet & Expression Evaluator</h2>
+            </div>
+            <button onclick="clearScratchpad()" class="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">Clear</button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+            <!-- Quick Math Expression Evaluator -->
+            <div class="md:col-span-5 flex flex-col justify-between bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Quick Formula Calculator</label>
+                <div class="flex gap-1.5">
+                  <input id="calc-input" type="text" placeholder="e.g. (480 - 195) / 210" onkeydown="if(event.key==='Enter') evaluateCalc()" class="w-full font-mono text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                  <button onclick="evaluateCalc()" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-xs font-semibold transition">=</button>
+                </div>
+              </div>
+              <div class="mt-2.5 flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
+                <span class="text-[11px] text-slate-500">Result:</span>
+                <span id="calc-result" class="font-mono text-sm font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">0.00</span>
+              </div>
+            </div>
+
+            <!-- Rough Working Notes -->
+            <div class="md:col-span-7">
+              <textarea id="exam-scratchpad" rows="3" placeholder="Jot down interim workings (e.g., Current Assets = 480, Quick Assets = 285, Discount factors @ 10%...)" class="w-full h-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 text-xs font-mono text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL: Interactive Exam Questions & Step-by-Step Analysis (5 cols on lg) -->
+      <div class="lg:col-span-5 relative">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <!-- Panel Header -->
+          <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/60 dark:bg-slate-800/40">
+            <div>
+              <h2 class="text-base font-bold text-slate-900 dark:text-white">Exam Requirements</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Round numerical answers to 2 decimal places.</p>
+            </div>
+            <div id="score-pill" class="hidden px-3 py-1 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-sm">
+              Score: 0 / 20
+            </div>
+          </div>
+
+          <!-- Questions Container -->
+          <div id="questions-container" class="p-5 space-y-6 max-h-[68vh] overflow-y-auto">
+            <!-- Populated dynamically via JS -->
+          </div>
+
+          <!-- Action Footer -->
+          <div class="p-4 sm:p-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex flex-wrap items-center justify-between gap-3">
+            <button onclick="resetCurrentAttempt()" class="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+              Reset Answers
+            </button>
+            <button id="submit-exam-btn" onclick="gradeExam()" class="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm shadow-emerald-600/25 transition flex items-center justify-center gap-2">
+              <span>Submit & Grade Exam</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- PRO LOCK OVERLAY (Shown when user selects a locked Pro Case while on Free Tier) -->
+        <div id="pro-lock-overlay" class="hidden absolute inset-0 z-20 rounded-2xl bg-slate-900/75 backdrop-blur-md flex items-center justify-center p-6 text-center">
+          <div class="max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-2xl">
+            <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-4 text-2xl">
+              🔒
+            </div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Pro Exam Pack Locked</span>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white mt-1">Unlock Full Case & Examiner Solutions</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
+              Gain unlimited access to CA/ACCA/CFA simulation packs, automated grading, and unlimited custom case generation for one semester.
+            </p>
+            <div class="mt-5 space-y-2.5">
+              <button onclick="openUpgradeModal()" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition">
+                Unlock Pro Pass — ₹299 / Semester
+              </button>
+              <button onclick="demoUnlockPro()" class="w-full py-2 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition">
+                Demo Unlock (Preview Mode)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Monetization Modal: Upgrade to Pro Pass -->
+  <div id="upgrade-modal" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative animate-fadeIn">
+      <button onclick="closeUpgradeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white p-1">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
+      <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-xs uppercase tracking-wider mb-2">
+        <span>★ FinCase Pro Semester Pass</span>
+      </div>
+      <h3 class="text-xl font-bold text-slate-900 dark:text-white">Ace Your Finance & Accounting Exams</h3>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">One-time payment. No auto-renewal. Instant access for 6 months.</p>
+
+      <div class="my-5 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 flex items-baseline justify-between">
+        <div>
+          <span class="text-2xl font-extrabold text-slate-900 dark:text-white">₹299</span>
+          <span class="text-xs text-slate-500 dark:text-slate-400 ml-1">/ semester (180 days)</span>
+        </div>
+        <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">Save 60%</span>
+      </div>
+
+      <ul class="space-y-2.5 text-xs text-slate-700 dark:text-slate-300 mb-6">
+        <li class="flex items-center gap-2.5">
+          <span class="text-emerald-500 font-bold">✓</span>
+          <span>All 30+ CA, ACCA & CFA Exam-Standard Case Studies</span>
+        </li>
+        <li class="flex items-center gap-2.5">
+          <span class="text-emerald-500 font-bold">✓</span>
+          <span>Unlimited Algorithmic Numerical Case Generation</span>
+        </li>
+        <li class="flex items-center gap-2.5">
+          <span class="text-emerald-500 font-bold">✓</span>
+          <span>Step-by-Step Worked Solutions & Examiner Traps</span>
+        </li>
+        <li class="flex items-center gap-2.5">
+          <span class="text-emerald-500 font-bold">✓</span>
+          <span>Timed Exam Simulation Mode with Formula Scratchpad</span>
+        </li>
+      </ul>
+
+      <div class="space-y-2.5">
+        <!-- Hook point for Razorpay / Stripe Checkout -->
+        <button onclick="simulateRazorpayCheckout()" class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-lg shadow-emerald-600/25 transition flex items-center justify-center gap-2">
+          <span>Proceed to Checkout (UPI / Card / NetBanking)</span>
+        </button>
+        <button onclick="demoUnlockPro(); closeUpgradeModal();" class="w-full py-2 px-4 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold transition">
+          Instant Demo Unlock (Test SaaS Owner View)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Logic & Financial Case Engine -->
+  <script>
+    // =========================================================================
+    // 1. STATE MANAGEMENT
+    // =========================================================================
+    const state = {
+      isProUser: false,
+      activeCaseId: 'case-1',
+      activeExhibitIdx: 0,
+      userAnswers: {},
+      isGraded: false,
+      timerSeconds: 25 * 60,
+      timerRunning: true,
+      timerInterval: null,
+      cases: []
+    };
+
+    // =========================================================================
+    // 2. PRE-LOADED EXAM CASE STUDIES (100% VERIFIED FINANCIAL MATH)
+    // =========================================================================
+    const INITIAL_CASES = [
+      {
+        id: 'case-1',
+        shortTitle: 'Case 1: Working Capital',
+        title: 'Working Capital & Liquidity Crunch — TechRetail Ltd',
+        syllabus: 'CA Inter / ACCA FR • Financial Ratios',
+        isPro: false,
+        totalMarks: 20,
+        subtitle: 'Analyze short-term solvency, inventory lock-up, and return on equity following rapid store expansion.',
+        exhibits: [
+          {
+            label: 'Exhibit 1: Company Brief',
+            type: 'text',
+            content: `
+              <div class="space-y-3">
+                <p><strong>TechRetail Ltd</strong> is a mid-sized consumer electronics retailer operating 28 stores across Western India. During FY 2025–26, management aggressively expanded showroom inventory to capture festive demand, financed largely through a short-term bank overdraft.</p>
+                <p>Although top-line revenue grew by 18%, the company's primary lender has expressed concern over tight cash liquidity and has requested a covenant compliance review before renewing the working capital facility.</p>
+                <div class="p-3.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-xs text-amber-900 dark:text-amber-200">
+                  <strong>Bank Covenant Thresholds:</strong> Minimum Current Ratio of <strong>1.75x</strong> and Minimum Quick (Acid-Test) Ratio of <strong>1.00x</strong>.
+                </div>
+              </div>
+            `
+          },
+          {
+            label: 'Exhibit 2: Balance Sheet Extract',
+            type: 'table',
+            caption: 'Statement of Financial Position as at 31 March 2026 (₹ in Lakhs)',
+            headers: ['Particulars', 'FY 2025-26 (₹ Lakhs)', 'FY 2024-25 (₹ Lakhs)'],
+            rows: [
+              ['<strong>Current Assets</strong>', '', ''],
+              ['Inventories (Finished Goods)', '310.00', '190.00'],
+              ['Trade Receivables', '145.00', '120.00'],
+              ['Cash & Bank Balances', '25.00', '50.00'],
+              ['<strong>Total Current Assets</strong>', '<strong>480.00</strong>', '<strong>360.00</strong>'],
+              ['<strong>Current Liabilities</strong>', '', ''],
+              ['Trade Payables', '165.00', '130.00'],
+              ['Short-Term Bank Overdraft', '135.00', '70.00'],
+              ['<strong>Total Current Liabilities</strong>', '<strong>300.00</strong>', '<strong>200.00</strong>'],
+              ['<strong>Equity & Capital</strong>', '', ''],
+              ['Shareholders’ Equity (Closing)', '500.00', '440.00']
+            ]
+          },
+          {
+            label: 'Exhibit 3: Income Statement',
+            type: 'table',
+            caption: 'Statement of Profit & Loss for the year ended 31 March 2026 (₹ in Lakhs)',
+            headers: ['Particulars', 'FY 2025-26 (₹ Lakhs)', 'FY 2024-25 (₹ Lakhs)'],
+            rows: [
+              ['Revenue from Operations (100% Credit)', '1,460.00', '1,237.00'],
+              ['Cost of Goods Sold (COGS)', '1,022.00', '865.00'],
+              ['Gross Profit', '438.00', '372.00'],
+              ['Operating Expenses & Finance Costs', '333.00', '284.00'],
+              ['Net Profit After Tax (PAT)', '<strong>105.00</strong>', '<strong>88.00</strong>']
+            ]
+          }
+        ],
+        questions: [
+          {
+            id: 'q1',
+            type: 'number',
+            marks: 5,
+            prompt: 'Calculate the Current Ratio (in times, e.g., 1.60) for FY 2025–26.',
+            placeholder: 'e.g. 1.60',
+            correctAnswer: 1.60,
+            tolerance: 0.02,
+            unit: 'x',
+            explanation: `
+              <strong>Formula:</strong> Current Ratio = Total Current Assets ÷ Total Current Liabilities<br/>
+              <strong>Calculation:</strong> ₹480.00 Lakhs ÷ ₹300.00 Lakhs = <strong>1.60x</strong>.<br/>
+              <em>Examiner Note:</em> TechRetail has breached the bank's 1.75x covenant (down from 1.80x in FY 2024-25) due to heavy overdraft borrowing.
+            `
+          },
+          {
+            id: 'q2',
+            type: 'number',
+            marks: 5,
+            prompt: 'Calculate the Quick (Acid-Test) Ratio (in times) for FY 2025–26.',
+            placeholder: 'e.g. 0.57',
+            correctAnswer: 0.57,
+            tolerance: 0.02,
+            unit: 'x',
+            explanation: `
+              <strong>Formula:</strong> Quick Ratio = (Current Assets − Inventories) ÷ Current Liabilities<br/>
+              <strong>Calculation:</strong> (₹480.00 − ₹310.00) ÷ ₹300.00 = ₹170.00 ÷ ₹300.00 = <strong>0.57x</strong> (0.566x).<br/>
+              <em>Examiner Note:</em> Over 64% of current assets are locked in slow-moving inventory, causing severe immediate liquidity stress.
+            `
+          },
+          {
+            id: 'q3',
+            type: 'number',
+            marks: 5,
+            prompt: 'Calculate Return on Closing Equity (ROE %) for FY 2025–26.',
+            placeholder: 'e.g. 21.00',
+            correctAnswer: 21.00,
+            tolerance: 0.1,
+            unit: '%',
+            explanation: `
+              <strong>Formula:</strong> ROE = (Net Profit After Tax ÷ Closing Shareholders' Equity) × 100<br/>
+              <strong>Calculation:</strong> (₹105.00 ÷ ₹500.00) × 100 = <strong>21.00%</strong>.
+            `
+          },
+          {
+            id: 'q4',
+            type: 'mcq',
+            marks: 5,
+            prompt: 'Which strategic action would most effectively restore both the Current Ratio and Quick Ratio without diluting equity?',
+            options: [
+              'Use the bank overdraft to purchase additional ₹50 Lakhs of inventory',
+              'Liquidate ₹90 Lakhs of slow-moving inventory at cost and repay the bank overdraft',
+              'Convert ₹100 Lakhs of Trade Payables into a 90-day short-term note payable',
+              'Declare a cash dividend of ₹20 Lakhs to shareholders'
+            ],
+            correctIndex: 1,
+            explanation: `
+              <strong>Correct Option: B.</strong> Selling ₹90 Lakhs of inventory for cash converts non-liquid stock into cash, and immediately paying down ₹90 Lakhs of overdraft reduces Current Liabilities from ₹300L to ₹210L.<br/>
+              New Current Ratio = 390 ÷ 210 = <strong>1.86x</strong> (Covenant Met!) and New Quick Ratio = 170 ÷ 210 = <strong>0.81x</strong> (Improves sharply from 0.57x).
+            `
+          }
+        ]
+      },
+      {
+        id: 'case-2',
+        shortTitle: 'Case 2: Capital Budgeting',
+        title: 'Capital Budgeting & NPV Decision — GreenGrid Energy',
+        syllabus: 'CFA Level I / CA Inter FM • Investment Appraisal',
+        isPro: true,
+        totalMarks: 20,
+        subtitle: 'Evaluate a 4-year solar micro-grid investment using Net Present Value (NPV) and Discounted Cash Flows.',
+        exhibits: [
+          {
+            label: 'Exhibit 1: Project Proposal',
+            type: 'text',
+            content: `
+              <div class="space-y-3">
+                <p><strong>GreenGrid Energy Pvt Ltd</strong> is evaluating the installation of a commercial rooftop solar array for an industrial park. The project requires an immediate capital outlay of <strong>₹400.00 Lakhs</strong> at Year 0.</p>
+                <p>The equipment has a useful life of 4 years with zero salvage value. GreenGrid's Weighted Average Cost of Capital (WACC) / hurdle discount rate is <strong>10% per annum</strong>.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Ignore taxation and working capital adjustments for this base-case appraisal.</p>
+              </div>
+            `
+          },
+          {
+            label: 'Exhibit 2: Cash Flows & PV Factors',
+            type: 'table',
+            caption: 'Projected Operating Cash Inflows & Present Value Factors @ 10%',
+            headers: ['Year', 'Net Cash Flow (₹ Lakhs)', 'PV Factor @ 10% (3 dec.)'],
+            rows: [
+              ['Year 0', '(400.00)', '1.000'],
+              ['Year 1', '120.00', '0.909'],
+              ['Year 2', '150.00', '0.826'],
+              ['Year 3', '160.00', '0.751'],
+              ['Year 4', '140.00', '0.683']
+            ]
+          }
+        ],
+        questions: [
+          {
+            id: 'q1',
+            type: 'number',
+            marks: 6,
+            prompt: 'Calculate the Total Present Value (PV) of cash inflows from Year 1 to Year 4 (in ₹ Lakhs).',
+            placeholder: 'e.g. 448.76',
+            correctAnswer: 448.76,
+            tolerance: 0.25,
+            unit: '₹ Lakhs',
+            explanation: `
+              <strong>Step-by-Step Discounting @ 10%:</strong><br/>
+              • Year 1: 120 × 0.909 = ₹109.08L<br/>
+              • Year 2: 150 × 0.826 = ₹123.90L<br/>
+              • Year 3: 160 × 0.751 = ₹120.16L<br/>
+              • Year 4: 140 × 0.683 = ₹95.62L<br/>
+              <strong>Total PV of Inflows</strong> = 109.08 + 123.90 + 120.16 + 95.62 = <strong>₹448.76 Lakhs</strong>.
+            `
+          },
+          {
+            id: 'q2',
+            type: 'number',
+            marks: 6,
+            prompt: 'Calculate the Net Present Value (NPV) of the solar project (in ₹ Lakhs).',
+            placeholder: 'e.g. 48.76',
+            correctAnswer: 48.76,
+            tolerance: 0.25,
+            unit: '₹ Lakhs',
+            explanation: `
+              <strong>Formula:</strong> NPV = Total PV of Inflows − Initial Outlay (Year 0)<br/>
+              <strong>Calculation:</strong> ₹448.76 Lakhs − ₹400.00 Lakhs = <strong>+₹48.76 Lakhs</strong>.
+            `
+          },
+          {
+            id: 'q3',
+            type: 'number',
+            marks: 4,
+            prompt: 'Calculate the Profitability Index (PI) of the project (to 2 decimal places).',
+            placeholder: 'e.g. 1.12',
+            correctAnswer: 1.12,
+            tolerance: 0.02,
+            unit: 'x',
+            explanation: `
+              <strong>Formula:</strong> Profitability Index = PV of Future Cash Flows ÷ Initial Investment<br/>
+              <strong>Calculation:</strong> ₹448.76 ÷ ₹400.00 = <strong>1.12x</strong> (Since PI > 1.0, the project creates shareholder value).
+            `
+          },
+          {
+            id: 'q4',
+            type: 'mcq',
+            marks: 4,
+            prompt: 'If GreenGrid’s WACC increases from 10% to 16% due to rising interest rates, what happens to the project’s NPV and IRR?',
+            options: [
+              'NPV decreases; IRR remains unchanged',
+              'Both NPV and IRR decrease proportionally',
+              'NPV increases; IRR remains unchanged',
+              'NPV remains unchanged; IRR decreases'
+            ],
+            correctIndex: 0,
+            explanation: `
+              <strong>Correct Option: A.</strong> IRR is an internal metric determined solely by the project's cash flows (approx. 15.16%). When the discount rate (WACC) rises to 16% (above the IRR), the present value of future cash inflows falls, turning NPV negative while IRR itself stays unchanged.
+            `
+          }
+        ]
+      },
+      {
+        id: 'case-3',
+        shortTitle: 'Case 3: Audit & Materiality',
+        title: 'Audit Risk & Materiality Assessment — NovaPharma',
+        syllabus: 'ACCA AA / CA Final Audit • ISA 320 & ISA 315',
+        isPro: true,
+        totalMarks: 20,
+        subtitle: 'Determine overall planning materiality, performance materiality, and evaluate unadjusted misstatements.',
+        exhibits: [
+          {
+            label: 'Exhibit 1: Audit Engagement Context',
+            type: 'text',
+            content: `
+              <div class="space-y-3">
+                <p>You are the Audit Senior planning the statutory audit of <strong>NovaPharma Ltd</strong>, a listed pharmaceutical manufacturer, for the year ended 31 March 2026.</p>
+                <p>Because NovaPharma is a profit-oriented listed entity, your firm's audit methodology mandates setting <strong>Overall Planning Materiality at 5% of Profit Before Tax (PBT)</strong>, and <strong>Performance Materiality at 75% of Overall Materiality</strong>.</p>
+              </div>
+            `
+          },
+          {
+            label: 'Exhibit 2: Draft Financial Benchmarks',
+            type: 'table',
+            caption: 'Draft Key Financial Figures — FY 2025-26 ($ in Thousands)',
+            headers: ['Financial Benchmark', 'Draft FY 2025-26 ($000)', 'Audited FY 2024-25 ($000)'],
+            rows: [
+              ['Total Revenue', '48,000', '42,500'],
+              ['Profit Before Tax (PBT)', '3,200', '2,950'],
+              ['Total Assets', '36,400', '33,100'],
+              ['Net Assets (Equity)', '19,800', '17,600']
+            ]
+          },
+          {
+            label: 'Exhibit 3: Audit Findings Summary',
+            type: 'text',
+            content: `
+              <div class="space-y-2">
+                <p>During substantive testing, your team identified an unadjusted inventory valuation error where obsolete clinical trial supplies worth <strong>$145,000</strong> were not written down to Net Realizable Value (NRV).</p>
+                <p>Management argues that $145,000 is trivial compared to Total Revenue ($48M) and refuses to post the journal entry.</p>
+              </div>
+            `
+          }
+        ],
+        questions: [
+          {
+            id: 'q1',
+            type: 'number',
+            marks: 6,
+            prompt: 'Calculate Overall Planning Materiality (in $ Thousands) using the firm benchmark.',
+            placeholder: 'e.g. 160.00',
+            correctAnswer: 160.00,
+            tolerance: 0.1,
+            unit: '$000',
+            explanation: `
+              <strong>Formula:</strong> Overall Materiality = 5% × Profit Before Tax<br/>
+              <strong>Calculation:</strong> 0.05 × $3,200k = <strong>$160.00 Thousand</strong> ($160,000).
+            `
+          },
+          {
+            id: 'q2',
+            type: 'number',
+            marks: 6,
+            prompt: 'Calculate Performance Materiality (in $ Thousands) at 75% of Overall Materiality.',
+            placeholder: 'e.g. 120.00',
+            correctAnswer: 120.00,
+            tolerance: 0.1,
+            unit: '$000',
+            explanation: `
+              <strong>Formula:</strong> Performance Materiality = 75% × Overall Materiality<br/>
+              <strong>Calculation:</strong> 0.75 × $160.00k = <strong>$120.00 Thousand</strong> ($120,000).
+            `
+          },
+          {
+            id: 'q3',
+            type: 'mcq',
+            marks: 8,
+            prompt: 'How should the audit team treat the $145,000 unadjusted inventory misstatement?',
+            options: [
+              'Ignore it completely because $145k is below Overall Materiality of $160k',
+              'Accumulate it on the Schedule of Unadjusted Misstatements; it exceeds Performance Materiality ($120k) and reduces PBT by 4.53%',
+              'Immediately issue an Adverse Audit Opinion without discussing with Those Charged with Governance',
+              'Re-calculate materiality using 1% of Total Revenue ($480k) so the error becomes immaterial'
+            ],
+            correctIndex: 1,
+            explanation: `
+              <strong>Correct Option: B.</strong> Under ISA 450, although $145k is slightly below Overall Materiality ($160k), it exceeds Performance Materiality ($120k) and represents 90.6% of Overall Materiality. It must be accumulated, communicated to the Audit Committee, and evaluated alongside any other misstatements before forming the audit opinion.
+            `
+          }
+        ]
+      }
+    ];
+
+    // =========================================================================
+    // 3. DYNAMIC ALGORITHMIC CASE GENERATOR
+    // =========================================================================
+    function generateDynamicCase() {
+      const topic = document.getElementById('gen-topic').value;
+      const difficulty = document.getElementById('gen-difficulty').value;
+      const currency = document.getElementById('gen-currency').value;
+      const unitLabel = currency === '₹' ? '₹ Lakhs' : '$000';
+
+      const companyNames = ['Apex Logistics', 'Vanguard Foods', 'Zenith Polymers', 'Meridian MedTech', 'Solaris Textiles'];
+      const company = companyNames[Math.floor(Math.random() * companyNames.length)] + ' Ltd';
+      const id = 'gen-' + Date.now();
+
+      let newCase;
+
+      if (topic === 'ratios') {
+        const cash = Math.floor(Math.random() * 40) + 20;
+        const receivables = Math.floor(Math.random() * 120) + 100;
+        const inventory = Math.floor(Math.random() * 180) + 150;
+        const currentAssets = cash + receivables + inventory;
+        const payables = Math.floor(Math.random() * 100) + 90;
+        const shortDebt = Math.floor(Math.random() * 90) + 60;
+        const currentLiab = payables + shortDebt;
+        const equity = Math.floor(Math.random() * 300) + 400;
+        const netProfit = Math.floor(Math.random() * 60) + 65;
+
+        const currentRatio = +(currentAssets / currentLiab).toFixed(2);
+        const quickRatio = +((currentAssets - inventory) / currentLiab).toFixed(2);
+        const roe = +((netProfit / equity) * 100).toFixed(2);
+
+        newCase = {
+          id,
+          shortTitle: `⚡ Generated: ${company.split(' ')[0]} Ratios`,
+          title: `Liquidity & Profitability Diagnostic — ${company}`,
+          syllabus: `${difficulty} • Financial Ratio Analysis`,
+          isPro: false,
+          totalMarks: 15,
+          subtitle: `Algorithmically generated financial dataset (${unitLabel}) for live exam practice.`,
+          exhibits: [
+            {
+              label: 'Exhibit 1: Financial Summary',
+              type: 'table',
+              caption: `Extracted Statement Figures (${unitLabel})`,
+              headers: ['Line Item', `Amount (${unitLabel})`],
+              rows: [
+                ['Cash & Cash Equivalents', cash.toFixed(2)],
+                ['Trade Receivables', receivables.toFixed(2)],
+                ['Closing Inventories', inventory.toFixed(2)],
+                ['<strong>Total Current Assets</strong>', `<strong>${currentAssets.toFixed(2)}</strong>`],
+                ['Trade Payables', payables.toFixed(2)],
+                ['Short-Term Borrowings', shortDebt.toFixed(2)],
+                ['<strong>Total Current Liabilities</strong>', `<strong>${currentLiab.toFixed(2)}</strong>`],
+                ['Shareholders’ Equity', equity.toFixed(2)],
+                ['Net Profit After Tax (PAT)', netProfit.toFixed(2)]
+              ]
+            }
+          ],
+          questions: [
+            {
+              id: 'q1',
+              type: 'number',
+              marks: 5,
+              prompt: 'Compute the Current Ratio (in times, rounded to 2 decimal places).',
+              placeholder: 'e.g. 1.75',
+              correctAnswer: currentRatio,
+              tolerance: 0.02,
+              unit: 'x',
+              explanation: `Current Assets (${currentAssets}) ÷ Current Liabilities (${currentLiab}) = <strong>${currentRatio}x</strong>.`
+            },
+            {
+              id: 'q2',
+              type: 'number',
+              marks: 5,
+              prompt: 'Compute the Quick (Acid-Test) Ratio (in times, rounded to 2 decimal places).',
+              placeholder: 'e.g. 0.95',
+              correctAnswer: quickRatio,
+              tolerance: 0.02,
+              unit: 'x',
+              explanation: `(Current Assets ${currentAssets} − Inventory ${inventory}) ÷ Current Liabilities ${currentLiab} = <strong>${quickRatio}x</strong>.`
+            },
+            {
+              id: 'q3',
+              type: 'number',
+              marks: 5,
+              prompt: 'Compute Return on Equity (ROE %) rounded to 2 decimal places.',
+              placeholder: 'e.g. 18.50',
+              correctAnswer: roe,
+              tolerance: 0.15,
+              unit: '%',
+              explanation: `(Net Profit ${netProfit} ÷ Equity ${equity}) × 100 = <strong>${roe}%</strong>.`
+            }
+          ]
+        };
+      } else if (topic === 'breakeven') {
+        const sellingPrice = (Math.floor(Math.random() * 8) + 8) * 10; // 80 to 150
+        const variableCost = Math.round(sellingPrice * 0.6);
+        const contributionPerUnit = sellingPrice - variableCost;
+        const fixedCosts = contributionPerUnit * (Math.floor(Math.random() * 15) + 12) * 100;
+        const targetProfit = contributionPerUnit * 500;
+
+        const bepUnits = +(fixedCosts / contributionPerUnit).toFixed(2);
+        const pvRatio = +((contributionPerUnit / sellingPrice) * 100).toFixed(2);
+        const targetUnits = +((fixedCosts + targetProfit) / contributionPerUnit).toFixed(2);
+
+        newCase = {
+          id,
+          shortTitle: `⚡ Generated: ${company.split(' ')[0]} CVP`,
+          title: `Cost-Volume-Profit & Break-Even Analysis — ${company}`,
+          syllabus: `${difficulty} • Management Accounting`,
+          isPro: false,
+          totalMarks: 15,
+          subtitle: `Evaluate contribution margins, break-even volume, and target profit output.`,
+          exhibits: [
+            {
+              label: 'Exhibit 1: Cost Structure',
+              type: 'table',
+              caption: `Unit Economics & Fixed Overheads (${currency})`,
+              headers: ['Parameter', 'Value'],
+              rows: [
+                ['Selling Price per Unit', `${currency}${sellingPrice.toFixed(2)}`],
+                ['Variable Manufacturing & Selling Cost per Unit', `${currency}${variableCost.toFixed(2)}`],
+                ['Annual Fixed Overheads', `${currency}${fixedCosts.toLocaleString()}`],
+                ['Target Annual Operating Profit', `${currency}${targetProfit.toLocaleString()}`]
+              ]
+            }
+          ],
+          questions: [
+            {
+              id: 'q1',
+              type: 'number',
+              marks: 5,
+              prompt: 'Calculate the Contribution Margin (P/V) Ratio (%).',
+              placeholder: 'e.g. 40.00',
+              correctAnswer: pvRatio,
+              tolerance: 0.1,
+              unit: '%',
+              explanation: `Contribution per unit = ${sellingPrice} − ${variableCost} = ${contributionPerUnit}. P/V Ratio = (${contributionPerUnit} ÷ ${sellingPrice}) × 100 = <strong>${pvRatio}%</strong>.`
+            },
+            {
+              id: 'q2',
+              type: 'number',
+              marks: 5,
+              prompt: 'Calculate the Break-Even Point in Units.',
+              placeholder: 'e.g. 1500',
+              correctAnswer: bepUnits,
+              tolerance: 1,
+              unit: 'units',
+              explanation: `BEP Units = Fixed Costs (${fixedCosts.toLocaleString()}) ÷ Contribution per unit (${contributionPerUnit}) = <strong>${bepUnits} units</strong>.`
+            },
+            {
+              id: 'q3',
+              type: 'number',
+              marks: 5,
+              prompt: `Calculate total sales volume (in units) required to earn the target profit of ${currency}${targetProfit.toLocaleString()}.`,
+              placeholder: 'e.g. 2000',
+              correctAnswer: targetUnits,
+              tolerance: 1,
+              unit: 'units',
+              explanation: `Required Units = (${fixedCosts.toLocaleString()} + ${targetProfit.toLocaleString()}) ÷ ${contributionPerUnit} = <strong>${targetUnits} units</strong>.`
+            }
+          ]
+        };
+      } else if (topic === 'npv') {
+        const outlay = (Math.floor(Math.random() * 4) + 3) * 100; // 300 to 600
+        const cf1 = Math.round(outlay * 0.35);
+        const cf2 = Math.round(outlay * 0.42);
+        const cf3 = Math.round(outlay * 0.45);
+        const pv1 = +(cf1 * 0.909).toFixed(2);
+        const pv2 = +(cf2 * 0.826).toFixed(2);
+        const pv3 = +(cf3 * 0.751).toFixed(2);
+        const totalPv = +(pv1 + pv2 + pv3).toFixed(2);
+        const npv = +(totalPv - outlay).toFixed(2);
+
+        newCase = {
+          id,
+          shortTitle: `⚡ Generated: ${company.split(' ')[0]} NPV`,
+          title: `3-Year Automation Capex Appraisal — ${company}`,
+          syllabus: `${difficulty} • Corporate Finance`,
+          isPro: false,
+          totalMarks: 15,
+          subtitle: `Discounted cash flow evaluation at a 10% hurdle rate.`,
+          exhibits: [
+            {
+              label: 'Exhibit 1: Cash Flow Schedule',
+              type: 'table',
+              caption: `Projected Cash Flows & PV Factors @ 10% (${unitLabel})`,
+              headers: ['Period', `Cash Flow (${unitLabel})`, 'PV Factor @ 10%'],
+              rows: [
+                ['Year 0 (Initial Capex)', `(${outlay.toFixed(2)})`, '1.000'],
+                ['Year 1', cf1.toFixed(2), '0.909'],
+                ['Year 2', cf2.toFixed(2), '0.826'],
+                ['Year 3', cf3.toFixed(2), '0.751']
+              ]
+            }
+          ],
+          questions: [
+            {
+              id: 'q1',
+              type: 'number',
+              marks: 7,
+              prompt: `Calculate Total Present Value of Inflows for Years 1–3 (${unitLabel}).`,
+              placeholder: 'e.g. 345.20',
+              correctAnswer: totalPv,
+              tolerance: 0.3,
+              unit: unitLabel,
+              explanation: `PV = (${cf1}×0.909) + (${cf2}×0.826) + (${cf3}×0.751) = ${pv1} + ${pv2} + ${pv3} = <strong>${totalPv} ${unitLabel}</strong>.`
+            },
+            {
+              id: 'q2',
+              type: 'number',
+              marks: 8,
+              prompt: `Calculate Net Present Value (NPV) in ${unitLabel} (use minus sign if negative).`,
+              placeholder: 'e.g. 45.20',
+              correctAnswer: npv,
+              tolerance: 0.3,
+              unit: unitLabel,
+              explanation: `NPV = Total PV (${totalPv}) − Initial Outlay (${outlay}) = <strong>${npv} ${unitLabel}</strong>.`
+            }
+          ]
+        };
+      } else {
+        // Audit materiality
+        const pbt = (Math.floor(Math.random() * 30) + 20) * 100; // 2000 to 4900
+        const overallMat = +(pbt * 0.05).toFixed(2);
+        const perfMat = +(overallMat * 0.75).toFixed(2);
+
+        newCase = {
+          id,
+          shortTitle: `⚡ Generated: ${company.split(' ')[0]} Audit`,
+          title: `ISA 320 Planning Materiality — ${company}`,
+          syllabus: `${difficulty} • Audit & Assurance`,
+          isPro: false,
+          totalMarks: 15,
+          subtitle: `Calculate statutory audit materiality thresholds from draft financial statements.`,
+          exhibits: [
+            {
+              label: 'Exhibit 1: Draft Benchmarks',
+              type: 'table',
+              caption: `Draft Extracts (${unitLabel})`,
+              headers: ['Benchmark', `Draft Figure (${unitLabel})`, 'Firm Policy'],
+              rows: [
+                ['Profit Before Tax (PBT)', pbt.toFixed(2), '5% for Overall Materiality'],
+                ['Performance Materiality', '—', '75% of Overall Materiality']
+              ]
+            }
+          ],
+          questions: [
+            {
+              id: 'q1',
+              type: 'number',
+              marks: 7,
+              prompt: `Calculate Overall Planning Materiality (${unitLabel}).`,
+              placeholder: 'e.g. 150.00',
+              correctAnswer: overallMat,
+              tolerance: 0.1,
+              unit: unitLabel,
+              explanation: `5% × ${pbt} = <strong>${overallMat} ${unitLabel}</strong>.`
+            },
+            {
+              id: 'q2',
+              type: 'number',
+              marks: 8,
+              prompt: `Calculate Performance Materiality (${unitLabel}).`,
+              placeholder: 'e.g. 112.50',
+              correctAnswer: perfMat,
+              tolerance: 0.1,
+              unit: unitLabel,
+              explanation: `75% × ${overallMat} = <strong>${perfMat} ${unitLabel}</strong>.`
+            }
+          ]
+        };
+      }
+
+      state.cases.unshift(newCase);
+      selectCase(newCase.id);
+      toggleGeneratorPanel();
+      showToast(`Generated fresh case study: ${company}`);
+    }
+
+    // =========================================================================
+    // 4. UI RENDERING FUNCTIONS
+    // =========================================================================
+    function renderCaseSelector() {
+      const container = document.getElementById('case-selector-list');
+      container.innerHTML = state.cases.map(c => {
+        const isActive = c.id === state.activeCaseId;
+        const isLocked = c.isPro && !state.isProUser;
+        return `
+          <button onclick="selectCase('${c.id}')"
+            class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap border transition ${
+              isActive
+                ? 'bg-slate-900 text-white border-slate-900 dark:bg-emerald-600 dark:border-emerald-600 shadow-sm'
+                : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 dark:bg-slate-800/70 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-800'
+            }">
+            <span>${c.shortTitle}</span>
+            ${
+              c.isPro
+                ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                    isLocked
+                      ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                      : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200'
+                  }">${isLocked ? '🔒 PRO' : 'PRO'}</span>`
+                : `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">FREE</span>`
+            }
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderActiveCase() {
+      const activeCase = state.cases.find(c => c.id === state.activeCaseId);
+      if (!activeCase) return;
+
+      // Update Header Metadata
+      const badgeEl = document.getElementById('case-badge');
+      if (activeCase.isPro) {
+        badgeEl.textContent = state.isProUser ? 'PRO EXAM PACK • UNLOCKED' : 'PRO EXAM PACK • LOCKED';
+        badgeEl.className = 'px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-200 dark:border-amber-800';
+      } else {
+        badgeEl.textContent = 'FREE PRACTICE CASE';
+        badgeEl.className = 'px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800';
+      }
+
+      document.getElementById('case-syllabus-tag').textContent = activeCase.syllabus;
+      document.getElementById('case-marks-badge').textContent = `Total Marks: ${activeCase.totalMarks}`;
+      document.getElementById('case-title').textContent = activeCase.title;
+      document.getElementById('case-subtitle').textContent = activeCase.subtitle;
+
+      // Render Exhibit Tabs
+      const exhibitTabsEl = document.getElementById('exhibit-tabs');
+      exhibitTabsEl.innerHTML = activeCase.exhibits.map((ex, idx) => {
+        const active = idx === state.activeExhibitIdx;
+        return `
+          <button onclick="selectExhibit(${idx})"
+            class="px-3.5 py-3 text-xs font-semibold border-b-2 whitespace-nowrap transition ${
+              active
+                ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400'
+                : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+            }">
+            ${ex.label}
+          </button>
+        `;
+      }).join('');
+
+      // Render Active Exhibit Body
+      const exhibit = activeCase.exhibits[state.activeExhibitIdx] || activeCase.exhibits[0];
+      const exhibitContentEl = document.getElementById('exhibit-content');
+
+      if (exhibit.type === 'text') {
+        exhibitContentEl.innerHTML = exhibit.content;
+      } else if (exhibit.type === 'table') {
+        exhibitContentEl.innerHTML = `
+          <div>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3">${exhibit.caption}</p>
+            <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+              <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                <thead>
+                  <tr class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">
+                    ${exhibit.headers.map((h, i) => `<th class="py-2.5 px-3.5 font-semibold ${i > 0 ? 'text-right' : ''}">${h}</th>`).join('')}
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+                  ${exhibit.rows.map(row => `
+                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition">
+                      ${row.map((cell, i) => `<td class="py-2.5 px-3.5 ${i > 0 ? 'text-right font-mono tabular-nums' : ''}">${cell}</td>`).join('')}
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+
+      // Render Questions Panel
+      renderQuestions(activeCase);
+
+      // Handle Pro Paywall Lock Overlay
+      const lockOverlay = document.getElementById('pro-lock-overlay');
+      if (activeCase.isPro && !state.isProUser) {
+        lockOverlay.classList.remove('hidden');
+      } else {
+        lockOverlay.classList.add('hidden');
+      }
+    }
+
+    function renderQuestions(activeCase) {
+      const container = document.getElementById('questions-container');
+      const scorePill = document.getElementById('score-pill');
+
+      if (!state.isGraded) {
+        scorePill.classList.add('hidden');
+      }
+
+      container.innerHTML = activeCase.questions.map((q, index) => {
+        const savedVal = state.userAnswers[q.id] ?? '';
+        let statusBorder = 'border-slate-200 dark:border-slate-800';
+        let statusBadge = '';
+
+        if (state.isGraded) {
+          const isCorrect = checkQuestionCorrect(q, savedVal);
+          statusBorder = isCorrect
+            ? 'border-emerald-400 dark:border-emerald-700 bg-emerald-50/30 dark:bg-emerald-950/20'
+            : 'border-rose-400 dark:border-rose-800 bg-rose-50/30 dark:bg-rose-950/20';
+          statusBadge = isCorrect
+            ? `<span class="text-[11px] font-bold text-emerald-700 dark:text-emerald-400">✓ Correct (+${q.marks}m)</span>`
+            : `<span class="text-[11px] font-bold text-rose-600 dark:text-rose-400">✕ Incorrect (0/${q.marks}m)</span>`;
+        }
+
+        let inputHtml = '';
+        if (q.type === 'number') {
+          inputHtml = `
+            <div class="mt-3 flex items-center gap-2">
+              <input type="number" step="any"
+                value="${savedVal}"
+                ${state.isGraded ? 'disabled' : ''}
+                oninput="recordAnswer('${q.id}', this.value)"
+                placeholder="${q.placeholder}"
+                class="w-44 font-mono text-sm px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-75" />
+              <span class="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400">${q.unit || ''}</span>
+            </div>
+          `;
+        } else if (q.type === 'mcq') {
+          inputHtml = `
+            <div class="mt-3 space-y-2">
+              ${q.options.map((opt, optIdx) => {
+                const checked = String(savedVal) === String(optIdx);
+                return `
+                  <label class="flex items-start gap-2.5 p-2.5 rounded-xl border cursor-pointer transition text-xs ${
+                    checked
+                      ? 'border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/40 text-slate-900 dark:text-white font-medium'
+                      : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300'
+                  }">
+                    <input type="radio" name="${q.id}" value="${optIdx}"
+                      ${checked ? 'checked' : ''}
+                      ${state.isGraded ? 'disabled' : ''}
+                      onchange="recordAnswer('${q.id}', '${optIdx}')"
+                      class="mt-0.5 accent-emerald-600" />
+                    <span>${opt}</span>
+                  </label>
+                `;
+              }).join('')}
+            </div>
+          `;
+        }
+
+        const solutionHtml = state.isGraded
+          ? `
+            <div class="mt-3.5 p-3 rounded-xl bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+              <div class="font-bold text-slate-900 dark:text-white mb-1">Worked Examiner Solution:</div>
+              ${q.explanation}
+            </div>
+          `
+          : '';
+
+        return `
+          <div class="p-4 rounded-xl border ${statusBorder} transition">
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Requirement ${index + 1}</span>
+              <div class="flex items-center gap-2">
+                ${statusBadge}
+                <span class="text-xs font-mono font-semibold text-slate-500 dark:text-slate-400">[${q.marks} Marks]</span>
+              </div>
+            </div>
+            <p class="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-100 leading-snug">${q.prompt}</p>
+            ${inputHtml}
+            ${solutionHtml}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // 5. INTERACTION, GRADING & MONETIZATION CONTROLLERS
+    // =========================================================================
+    function selectCase(caseId) {
+      state.activeCaseId = caseId;
+      state.activeExhibitIdx = 0;
+      state.userAnswers = {};
+      state.isGraded = false;
+      renderCaseSelector();
+      renderActiveCase();
+    }
+
+    function selectExhibit(idx) {
+      state.activeExhibitIdx = idx;
+      renderActiveCase();
+    }
+
+    function recordAnswer(qId, val) {
+      state.userAnswers[qId] = val;
+    }
+
+    function checkQuestionCorrect(question, userVal) {
+      if (userVal === '' || userVal === undefined || userVal === null) return false;
+      if (question.type === 'number') {
+        const parsed = parseFloat(userVal);
+        if (isNaN(parsed)) return false;
+        return Math.abs(parsed - question.correctAnswer) <= (question.tolerance || 0.05);
+      }
+      if (question.type === 'mcq') {
+        return String(userVal) === String(question.correctIndex);
+      }
+      return false;
+    }
+
+    function gradeExam() {
+      const activeCase = state.cases.find(c => c.id === state.activeCaseId);
+      if (!activeCase) return;
+
+      let earnedMarks = 0;
+      activeCase.questions.forEach(q => {
+        if (checkQuestionCorrect(q, state.userAnswers[q.id])) {
+          earnedMarks += q.marks;
+        }
+      });
+
+      state.isGraded = true;
+      renderQuestions(activeCase);
+
+      const scorePill = document.getElementById('score-pill');
+      scorePill.textContent = `Score: ${earnedMarks} / ${activeCase.totalMarks}`;
+      scorePill.classList.remove('hidden');
+
+      showToast(`Graded! You scored ${earnedMarks} out of ${activeCase.totalMarks} marks.`);
+    }
+
+    function resetCurrentAttempt() {
+      state.userAnswers = {};
+      state.isGraded = false;
+      renderActiveCase();
+      showToast('Answers cleared for a fresh attempt.');
+    }
+
+    // Monetization & Tier Management
+    function handleTierButtonClick() {
+      if (state.isProUser) {
+        // Allow toggling back to Free Tier for SaaS founder testing
+        state.isProUser = false;
+        updateTierBadge();
+        renderCaseSelector();
+        renderActiveCase();
+        showToast('Switched back to Free Tier preview.');
+      } else {
+        openUpgradeModal();
+      }
+    }
+
+    function openUpgradeModal() {
+      document.getElementById('upgrade-modal').classList.remove('hidden');
+    }
+
+    function closeUpgradeModal() {
+      document.getElementById('upgrade-modal').classList.add('hidden');
+    }
+
+    function demoUnlockPro() {
+      state.isProUser = true;
+      updateTierBadge();
+      renderCaseSelector();
+      renderActiveCase();
+      showToast('Pro Pass Unlocked! All exam packs & solutions are active.');
+    }
+
+    function simulateRazorpayCheckout() {
+      closeUpgradeModal();
+      showToast('Opening payment gateway checkout...');
+      setTimeout(() => {
+        demoUnlockPro();
+      }, 900);
+    }
+
+    function updateTierBadge() {
+      const btn = document.getElementById('tier-badge-btn');
+      const icon = document.getElementById('tier-icon');
+      const label = document.getElementById('tier-label');
+
+      if (state.isProUser) {
+        btn.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border transition shadow-sm bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:border-emerald-800 dark:text-emerald-300';
+        icon.textContent = '★';
+        label.textContent = 'Pro Pass Active';
+      } else {
+        btn.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border transition shadow-sm bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100 dark:bg-amber-950/50 dark:border-amber-800/70 dark:text-amber-300';
+        icon.textContent = '🔓';
+        label.textContent = 'Free Tier • Upgrade';
+      }
+    }
+
+    // =========================================================================
+    // 6. EXAM TIMER, SCRATCHPAD CALCULATOR & UTILITIES
+    // =========================================================================
+    function startTimerLoop() {
+      if (state.timerInterval) clearInterval(state.timerInterval);
+      state.timerInterval = setInterval(() => {
+        if (!state.timerRunning) return;
+        if (state.timerSeconds > 0) {
+          state.timerSeconds--;
+          updateTimerDisplay();
+        } else {
+          state.timerRunning = false;
+          showToast('Time is up! Submitting exam...');
+          gradeExam();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(state.timerSeconds / 60);
+      const secs = state.timerSeconds % 60;
+      document.getElementById('exam-timer').textContent =
+        `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function toggleTimer() {
+      state.timerRunning = !state.timerRunning;
+      document.getElementById('timer-toggle-btn').textContent = state.timerRunning ? 'Pause' : 'Resume';
+      const dot = document.getElementById('timer-dot');
+      dot.className = state.timerRunning
+        ? 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse'
+        : 'w-2 h-2 rounded-full bg-amber-500';
+    }
+
+    function resetTimer() {
+      state.timerSeconds = 25 * 60;
+      updateTimerDisplay();
+      showToast('Exam clock reset to 25:00.');
+    }
+
+    function evaluateCalc() {
+      const inputEl = document.getElementById('calc-input');
+      const resultEl = document.getElementById('calc-result');
+      const expr = inputEl.value.trim();
+      if (!expr) return;
+
+      // Safe mathematical expression parser (only digits and basic math operators)
+      if (!/^[0-9+\-*/().\s]+$/.test(expr)) {
+        resultEl.textContent = 'Invalid Expr';
+        return;
+      }
+      try {
+        const evaluated = Function(`"use strict"; return (${expr})`)();
+        if (typeof evaluated === 'number' && isFinite(evaluated)) {
+          resultEl.textContent = evaluated.toFixed(4).replace(/\.?0+$/, '');
+        } else {
+          resultEl.textContent = 'Error';
+        }
+      } catch (e) {
+        resultEl.textContent = 'Error';
+      }
+    }
+
+    function clearScratchpad() {
+      document.getElementById('exam-scratchpad').value = '';
+      document.getElementById('calc-input').value = '';
+      document.getElementById('calc-result').textContent = '0.00';
+    }
+
+    function toggleGeneratorPanel() {
+      const drawer = document.getElementById('generator-drawer');
+      drawer.classList.toggle('hidden');
+    }
+
+    function toggleDarkMode() {
+      document.documentElement.classList.toggle('dark');
+    }
+
+    let toastTimeout;
+    function showToast(msg) {
+      const banner = document.getElementById('toast-banner');
+      document.getElementById('toast-message').textContent = msg;
+      banner.classList.remove('hidden');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        banner.classList.add('hidden');
+      }, 3200);
+    }
+
+    // Initialize Application
+    window.addEventListener('DOMContentLoaded', () => {
+      state.cases = [...INITIAL_CASES];
+      renderCaseSelector();
+      renderActiveCase();
+      updateTimerDisplay();
+      startTimerLoop();
+    });
+  </script>
+</body>
+</html>
